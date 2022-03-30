@@ -107,18 +107,32 @@ if __name__ == '__main__':
         XI2 = math.atan2(gY[p2[0]][p2[1]], gX[p2[0]][p2[1]])
         print(XI1)
         print(XI2)
-        t1 = (y1 - y2 - x1*XI1 + x2*XI2) / (XI2 - XI1) if (XI2 - XI1) else 0
-        t2 = (XI1*XI2*(x2 - x1) - y2*XI1 + y1*XI2) / (XI2 - XI1)
+        t1 = (y1 - y2 - x1*XI1 + x2*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
+        t2 = (XI1*XI2*(x2 - x1) - y2*XI1 + y1*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
         print(t1)
         print(t2)
         m0 = (t2 - m2) / (t1 - m1)
         b0 = (m2*t1 - m1*t2) / (t1 - m1)
+
         # print(m0)
         # print(b0)
         # votes[m0][b0] += 1
-
-
-
+        cols = int(height/10)
+        rows = int(width/10)
+        accumulatorArray = []
+        for i in range(rows):
+            col = []
+            for j in range(cols):
+                col.append(0)
+            accumulatorArray.append(col)
+        # accumulatorArray = arr = [[0]*cols]*rows
+        for i in range(rows):
+            x = 10*i
+            y = x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
+            y = int(y/10)
+            if y < cols:
+                accumulatorArray[i][y] += 1
+        print(accumulatorArray)
 
 
 
