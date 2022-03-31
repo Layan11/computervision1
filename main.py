@@ -56,8 +56,8 @@ if __name__ == '__main__':
     plt.title('Canny')
     plt.xticks([]), plt.yticks([])
     plt.show()
-
-    for k in range(100, 300):
+    k = 50
+    while k <= 300:
         for i in range(width):
             for j in range(height - k):
                 if canny[i][j] != 0 and canny[i][j + k] != 0:  # edge pixels
@@ -73,6 +73,7 @@ if __name__ == '__main__':
                     # plt.show()
 
                     indices.append([[i, j], [i, j + k]])
+        k += 10
     # for i in range(tl.shape[0]):
     #     for j in range(tl.shape[1]):
     #         if tl[i][j] != 0:  # edge pixels
@@ -118,6 +119,8 @@ if __name__ == '__main__':
                 accumulatorArray[i][y] += 1
 
     threshold = max(max(accumulatorArray))
+    print('threshold = ')
+    print(threshold)
     centers = []
     for i in range(rows):
         for j in range(cols):
@@ -127,7 +130,7 @@ if __name__ == '__main__':
 
     # for i in range(len(centers)):
     #     newimage = cv2.circle(img1, (10*centers[i][1], 10*centers[i][0]), radius=5, color=(0, 0, 255), thickness=-1)
-    print(len(indices))
+    # print(len(indices))
     for i in range(len(indices)):
         newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=2, color=(255, 255, 255), thickness=-1)
         newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=2, color=(255, 255, 255), thickness=-1)
