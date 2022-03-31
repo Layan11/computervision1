@@ -18,7 +18,7 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    img1 = cv2.imread('frame_0_delay-0.2s.jpg', 0)
+    img1 = cv2.imread('FSzcQ.png', 0)
 
     # plt.subplot(1, 1, 1), plt.imshow(img1, 'gray')
     # plt.title('Original Image')
@@ -36,7 +36,6 @@ if __name__ == '__main__':
     #     plt.xticks([]), plt.yticks([])
     # plt.show()
 
-
     gX = cv2.Sobel(img1, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)
     gY = cv2.Sobel(img1, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)
 
@@ -44,47 +43,35 @@ if __name__ == '__main__':
     height = canny.shape[1]
 
     indices = []
-    rows = int(height / 10)
-    cols = int(width / 10)
-    accumulatorArray = []
-    for i in range(rows):
-        col = []
-        for j in range(cols):
-            col.append(0)
-        accumulatorArray.append(col)
+
     plt.subplot(1, 1, 1), plt.imshow(canny, 'gray')
     plt.title('Canny')
     plt.xticks([]), plt.yticks([])
     plt.show()
-    k = 50
-    while k <= 300:
+    k = 40
+    while k <= 250:
         for i in range(width):
             for j in range(height - k):
                 if canny[i][j] != 0 and canny[i][j + k] != 0:  # edge pixels
-                    # print([i, j])
-                    # print([i + 200, j])
-                    # cv2.circle(canny, ([j, i]), radius=5, color=(255, 255, 255), thickness=-1)
-                    # cv2.circle(canny, ([j+200, i]), radius=5, color=(255, 255, 255), thickness=-1)
-                    # # cv2.imshow('Test image', canny)
-                    # # cv2.waitKey(0)
-                    # plt.subplot(1, 1, 1), plt.imshow(canny, 'gray')
-                    # plt.title('errrrrrrrrrr')
-                    # plt.xticks([]), plt.yticks([])
-                    # plt.show()
-
                     indices.append([[i, j], [i, j + k]])
-        k += 10
-    # for i in range(tl.shape[0]):
-    #     for j in range(tl.shape[1]):
-    #         if tl[i][j] != 0:  # edge pixels
-    #             indices.append([i, j])
-    #
-    # print('lennnn')
-    # print(len(indices))
-    # indices = list(itertools.combinations(indices, 2))
-    # print(len(indices))
-    # # now we have all possible pairs indices in 'indices'
-    ems = []
+        k += 5
+
+    # rows = int(height / 10)
+    # cols = int(width / 10)
+
+    accumulatorArray = cv2.resize(canny, (0, 0), fx=0.1, fy=0.1)
+    cols = accumulatorArray.shape[0]
+    rows = accumulatorArray.shape[1]
+    # for i in range(rows):
+    #     col = []
+    #     for j in range(cols):
+    #         col.append(0)
+    #     accumulatorArray.append(col)
+    for i in range(cols):
+        for j in range(rows):
+            accumulatorArray[i][j] = 0
+
+    print(len(accumulatorArray))
     for i in range(len(indices)):
         p1 = indices[i][0]
         p2 = indices[i][1]
@@ -93,16 +80,6 @@ if __name__ == '__main__':
         x2, y2 = p2[0], p2[1]
         m1 = int((x1 + x2)/2)
         m2 = int((y1 + y2)/2)
-        # ems.append([x1, y1])
-        # ems.append([x2, y2])
-        # ems.append([m1, m2])
-        # for i in range(len(ems)):
-        #     newimage = cv2.circle(canny, (ems[i][1], ems[i][0]), radius=5, color=(255, 255, 255),thickness=-1)
-        #
-        #     plt.subplot(1, 1, 1), plt.imshow(newimage, 'gray')
-        #     plt.title('emsssssss')
-        #     plt.xticks([]), plt.yticks([])
-        #     plt.show()
         XI1 = math.atan2(gY[p1[0]][p1[1]], gX[p1[0]][p1[1]])
         XI2 = math.atan2(gY[p2[0]][p2[1]], gX[p2[0]][p2[1]])
         t1 = (y1 - y2 - x1*XI1 + x2*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
@@ -110,21 +87,26 @@ if __name__ == '__main__':
         m0 = (t2 - m2) / (t1 - m1)
         b0 = (m2*t1 - m1*t2) / (t1 - m1)
 
-        for i in range(rows):
+        for i in range(cols):
             x = 10*i
             y = x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
             y = int(y/10)
 
-            if 0 <= y < cols:
+            if 0 <= y < rows:
                 accumulatorArray[i][y] += 1
 
-    threshold = max(max(accumulatorArray))
+    # threshold = max(max(accumulatorArray))
+    threshold = 0
+    for i in range(cols):
+        for j in range(rows):
+            if accumulatorArray[i][j] > threshold:
+                threshold = accumulatorArray[i][j]
     print('threshold = ')
     print(threshold)
     centers = []
-    for i in range(rows):
-        for j in range(cols):
-            if accumulatorArray[i][j] > threshold:
+    for i in range(cols):
+        for j in range(rows):
+            if accumulatorArray[i][j] >= threshold-150:
                 centers.append([i, j])
 
 
@@ -132,8 +114,8 @@ if __name__ == '__main__':
     #     newimage = cv2.circle(img1, (10*centers[i][1], 10*centers[i][0]), radius=5, color=(0, 0, 255), thickness=-1)
     # print(len(indices))
     for i in range(len(indices)):
-        newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=2, color=(255, 255, 255), thickness=-1)
-        newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=2, color=(255, 255, 255), thickness=-1)
+        newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=1, color=(255, 255, 255), thickness=-1)
+        newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=1, color=(255, 255, 255), thickness=-1)
 
     plt.subplot(1, 1, 1), plt.imshow(newimage, 'gray')
     plt.title('all indices')
@@ -141,7 +123,7 @@ if __name__ == '__main__':
     plt.show()
     new = canny
     for i in range(len(centers)):
-        new = cv2.circle(canny, [10*centers[i][1], 10*centers[i][0]], radius=5, color=(255, 255, 255), thickness=-1)
+        new = cv2.circle(canny, [10*centers[i][1], 10*centers[i][0]], radius=7, color=(255, 255, 255), thickness=-1)
 
     plt.subplot(1, 1, 1), plt.imshow(new, 'gray')
     plt.title('winner center points')
