@@ -43,7 +43,7 @@ if __name__ == '__main__':
     height = canny.shape[1]
 
     indices = []
-
+    lines = []
     plt.subplot(1, 1, 1), plt.imshow(canny, 'gray')
     plt.title('Canny')
     plt.xticks([]), plt.yticks([])
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             x = 10*i
             y = x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
             y = int(y/10)
-
+            lines.append([(t2 - m2) / (t1 - m1), (m2 * t1 - m1 * t2) / (t1 - m1)])
             if 0 <= y < rows:
                 accumulatorArray[i][y] += 1
 
@@ -128,6 +128,15 @@ if __name__ == '__main__':
     plt.subplot(1, 1, 1), plt.imshow(new, 'gray')
     plt.title('winner center points')
     plt.xticks([]), plt.yticks([])
+    plt.show()
+
+    print('shape[0] = ')
+    print(canny.shape[0])
+    x = np.linspace(0, canny.shape[0])
+    for i in range(len(lines)):
+        plt.imshow(newimage, 'gray')
+        y = lines[i][0]*x + lines[i][1]
+        plt.plot(x, y, '-r', label='y=2x+1')
     plt.show()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
