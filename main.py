@@ -8,17 +8,22 @@ import math
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-
+from sympy import plot_implicit, Eq
+from sympy.abc import x, y
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
+    plot_implicit(Eq(3*x**2+2*x*y+4*y**2, 5))
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    img1 = cv2.imread('FSzcQ.png', 0)
+    img1 = cv2.imread('frame_0_delay-0.2s.jpg', 0)
+    down_width = 256
+    down_height = 256
+    down_points = (down_width, down_height)
+    img1 = cv2.resize(img1, down_points, interpolation=cv2.INTER_LINEAR)
 
     # plt.subplot(1, 1, 1), plt.imshow(img1, 'gray')
     # plt.title('Original Image')
@@ -48,13 +53,13 @@ if __name__ == '__main__':
     plt.title('Canny')
     plt.xticks([]), plt.yticks([])
     plt.show()
-    k = 40
+    k = 70
     while k <= 250:
         for i in range(width):
             for j in range(height - k):
                 if canny[i][j] != 0 and canny[i][j + k] != 0:  # edge pixels
                     indices.append([[i, j], [i, j + k]])
-        k += 5
+        k += 1
 
     # rows = int(height / 10)
     # cols = int(width / 10)
@@ -82,10 +87,33 @@ if __name__ == '__main__':
         m2 = int((y1 + y2)/2)
         XI1 = math.atan2(gY[p1[0]][p1[1]], gX[p1[0]][p1[1]])
         XI2 = math.atan2(gY[p2[0]][p2[1]], gX[p2[0]][p2[1]])
+        print('XI1 + XI2 = ')
+        print(XI1)
+        print(XI2)
         t1 = (y1 - y2 - x1*XI1 + x2*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
         t2 = (XI1*XI2*(x2 - x1) - y2*XI1 + y1*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
         m0 = (t2 - m2) / (t1 - m1)
         b0 = (m2*t1 - m1*t2) / (t1 - m1)
+
+        m = [m1, m2]
+        start = [int(t2), int(t1)]
+        x = 10*(cols-1)
+        finish = [int(x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)), x]
+        # line = cv2.circle(canny, (y1, x1), radius=5, color=(255, 255, 255),thickness=-1)
+        # line = cv2.circle(canny, (y2, x2), radius=5, color=(255, 255, 255),thickness=-1)
+        # line = cv2.circle(canny, (m2, m1), radius=5, color=(255, 255, 255), thickness=-1)
+        # line = cv2.circle(canny, (int(t2), int(t1)), radius=5, color=(255, 0, 0), thickness=-1)
+        test1 = [p1[1], p1[0]]
+        test2 = [p2[1], p2[0]]
+        # line = cv2.line(canny, test1, [m2, m1], (255, 255, 255))
+        # line = cv2.line(canny, [m2, m1], test2, (255, 255, 255))
+
+        # line = cv2.line(canny, start, [m2, m1], (255, 255, 255))
+        #
+        # plt.subplot(1, 1, 1), plt.imshow(line)
+        # plt.title('za lines')
+        # plt.xticks([]), plt.yticks([])
+        # plt.show()
 
         for i in range(cols):
             x = 10*i
@@ -106,8 +134,9 @@ if __name__ == '__main__':
     centers = []
     for i in range(cols):
         for j in range(rows):
-            if accumulatorArray[i][j] >= threshold-150:
+            if accumulatorArray[i][j] >= threshold:
                 centers.append([i, j])
+                print('in centers append')
 
 
     # for i in range(len(centers)):
@@ -132,8 +161,10 @@ if __name__ == '__main__':
 
     print('shape[0] = ')
     print(canny.shape[0])
-    x = np.linspace(0, canny.shape[0])
-    for i in range(len(lines)):
+    print('shape[1] = ')
+    print(canny.shape[1])
+    x = np.linspace(0, 40, canny.shape[1])
+    for i in range(2):
         plt.imshow(newimage, 'gray')
         y = lines[i][0]*x + lines[i][1]
         plt.plot(x, y, '-r', label='y=2x+1')
