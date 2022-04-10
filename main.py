@@ -89,10 +89,9 @@ if __name__ == '__main__':
         print(XI2)
 
         if (XI2 - XI1) == 0:
-            print("they now are zerooooooo")
             count += 1
             print(XI2 - XI1)
-        print("THE COUNT ISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+        print("THE COUNT =")
         print(count)
         t1 = (y1 - y2 - x1*XI2 + x2*XI1) / (XI1 - XI2) if (XI1 - XI2) else 1
         t2 = (XI1*XI2*(x2 - x1) - y2*XI2 + y1*XI1) / (XI1 - XI2) if (XI1 - XI2) else 1

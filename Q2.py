@@ -17,10 +17,11 @@ if __name__ == '__main__':
 
     matrix = []
     matches = []
-    for i in range(n):
+    for i in range(round(n/10)):
         cols = []
-        for j in range(m):
-            cols.append(numpy.linalg.norm(descriptors1[i] - descriptors2[j]))
+        for j in range(round(m/10)):
+            d = numpy.linalg.norm(descriptors1[i] - descriptors2[j])
+            cols.append(d)
         matrix.append(cols)
 
         sortedvalues = cols
@@ -39,4 +40,4 @@ if __name__ == '__main__':
     cv2.imshow("image", matchimg)
     cv2.waitKey(0)
 
-    # now what to do with matches??
+
