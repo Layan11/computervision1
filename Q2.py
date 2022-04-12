@@ -7,6 +7,7 @@ import numpy
 import random
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 if __name__ == '__main__':
 
@@ -27,9 +28,13 @@ if __name__ == '__main__':
         keypoints1, descriptors1 = sift1.detectAndCompute(target, None)
         keypoints2, descriptors2 = sift2.detectAndCompute(im1, None)
 
+        firsttime = True
+        zedge = []
         n, m = len(keypoints1), len(keypoints2)
-        # desc1_sample = random.sample(range(0, n), round(n/3))
-        # desc2_sample = random.sample(range(0, m), round(m/3))
+        desc1_sample = random.sample(range(0, n), round(n/8))
+        desc2_sample = random.sample(range(0, m), round(m/8))
+        try1 = descriptors1[desc1_sample]
+        try2 = descriptors2[desc2_sample]
         matrix = []
         matches = []
         for i in range(round(n/8)):
@@ -46,7 +51,9 @@ if __name__ == '__main__':
             idx = cols.index(first_min)
 
             if first_min / second_min < 0.8:
+                zedge.append([i, j])
                 matches.append(idx)
+
             else:
                 matches.append(-1)
 
@@ -74,7 +81,9 @@ if __name__ == '__main__':
                 # print('the draw')
                 # matchimg = cv2.line(matchimg, (round(keypoints1[i].pt[0]), round(keypoints1[i].pt[1])), (round(x), round(y)),
                 #                         (255, 225, 128), 1)
+
                 points.append([keypoints1[i].pt, keypoints2[matches[i]].pt])
+
         # cv2.imshow("image", matchimg)
         # cv2.waitKey(0)
 
@@ -87,7 +96,10 @@ if __name__ == '__main__':
             pset1 = numpy.float32([p1[0], p2[0], p3[0], p4[0]])
             pset2 = numpy.float32([[p1[1], p2[1], p3[1], p4[1]]])
 
-            projective_matrix = cv2.getPerspectiveTransform(pset1, pset2)
+            h, status = cv2.findHomography(pset1, pset2)
+
+            projective_matrix = h
+            # projective_matrix = cv2.getPerspectiveTransform(pset1, pset2)
 
             votescount = 0
             for j in range(len(points)):
@@ -97,49 +109,26 @@ if __name__ == '__main__':
                 new_proj_point = np.matmul(projective_matrix, currPoint2)
                 new_proj_point = [(new_proj_point[0] / new_proj_point[2]), (new_proj_point[1] / new_proj_point[2])]
                 pixel_distance_proj = numpy.linalg.norm(currPoint[1] - new_proj_point)
-                if pixel_distance_proj <= 4:
+                if pixel_distance_proj <= 2:
                     votescount += 1
             if votescount > max_votes:
                 max_proj_matrix = projective_matrix
                 max_votes = votescount
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
         img2 = cv2.warpPerspective(im1, max_proj_matrix, (w1, h1), flags=cv2.INTER_CUBIC,
                                    borderMode=cv2.BORDER_TRANSPARENT)
         # cv2.imshow("the proj image", img2)
         # cv2.waitKey(0)
         warped_images.append(img2)
     clean_image = np.zeros((h1, w1, ch1))
-    cv2.imshow("the proj", warped_images[0])
+    cv2.imshow("the proj", warped_images[0] + warped_images[1])
 
     cv2.imshow("the prxoj", warped_images[1])
     cv2.waitKey(0)
-    # for im in warped_images:
-    #
-    #     clean_image = np.add(target, target)
-    # clean_image = np.true_divide(clean_image, 2)
-    # cv2.imshow('CLEAN IMAGE', clean_image)
-    # cv2.waitKey(0)
+    for im in warped_images:
 
-    # clean_image = np.add(target, target)
+        clean_image += im
     # clean_image = np.true_divide(clean_image, 2)
-    # cv2.imshow('ClllLEAN IMAGE', clean_image)
-    # cv2.waitKey(0)
-    # for rows in range(len(target)):
-    #     for cols in range(len(target[0])):
-    #         clean_image[i][j] = target[i][j] + target[i][j]
-    #         p = 0
-    #         for im in warped_images:
-    #             p1 += im[rows][cols][0]
-    #             p2 += im[rows][cols][1]
-    #             p3 += im[rows][cols][2]
-    #         p1 /= len(cameleon_set)
-    #         p2 /= len(cameleon_set)
-    #         p3 /= len(cameleon_set)
-    #         clean_image[rows][cols] = p1, p2, p3
-    # for rows in range(h1):
-    #     for cols in range(w1):
-    #         clean_image[i][j] = clean_image[i][j]/2
-    clean_image = target + target
-    newim = clean_image / 2
-    cv2.imshow('CLEAN IMAGE', newim)
+    cv2.imshow('CLEAN IMAGE', clean_image)
     cv2.waitKey(0)
+
