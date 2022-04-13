@@ -28,8 +28,7 @@ if __name__ == '__main__':
         keypoints1, descriptors1 = sift1.detectAndCompute(target, None)
         keypoints2, descriptors2 = sift2.detectAndCompute(im1, None)
 
-        firsttime = True
-        zedge = []
+        # indexpairs = []
         n, m = len(keypoints1), len(keypoints2)
         desc1_sample = random.sample(range(0, n), round(n/8))
         desc2_sample = random.sample(range(0, m), round(m/8))
@@ -51,7 +50,7 @@ if __name__ == '__main__':
             idx = cols.index(first_min)
 
             if first_min / second_min < 0.8:
-                zedge.append([i, j])
+                # indexpairs.append([i, j])
                 matches.append(idx)
 
             else:
@@ -126,7 +125,8 @@ if __name__ == '__main__':
     cv2.imshow("the prxoj", warped_images[1])
     cv2.waitKey(0)
     for im in warped_images:
-
+        cv2.imshow('im', im)
+        cv2.waitKey(0)
         clean_image += im
     # clean_image = np.true_divide(clean_image, 2)
     cv2.imshow('CLEAN IMAGE', clean_image)
