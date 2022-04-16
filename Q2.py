@@ -1,7 +1,7 @@
 import copy
 import math
 
-import cv as cv
+
 import cv2
 import numpy
 import random
@@ -37,9 +37,9 @@ if __name__ == '__main__':
         try2 = descriptors2[desc2_sample]
         matrix = []
         matches = []
-        for i in range(round(n/8)):
+        for i in range(round(n/4)):
             cols = []
-            for j in range(round(m/8)):
+            for j in range(round(m/4)):
                 d = numpy.linalg.norm(descriptors1[i] - descriptors2[j])
                 cols.append(d)
             matrix.append(cols)
