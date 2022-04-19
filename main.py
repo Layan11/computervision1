@@ -2,12 +2,17 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import copy
 import itertools
 import math
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import ndimage
+from scipy.ndimage import filters
+from scipy.signal import find_peaks
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -16,7 +21,7 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    img1 = cv2.imread('frame_0_delay-0.2s.jpg', 0)
+    img1 = cv2.imread('twoellipses.jpg', 0)
     down_width = 256
     down_height = 256
     down_points = (down_width, down_height)
@@ -50,8 +55,10 @@ if __name__ == '__main__':
     plt.title('Canny')
     plt.xticks([]), plt.yticks([])
     plt.show()
-    k = 40
-    while k <= 200:
+    # K = [15, 20, 25, 30, 35, 45]
+    k = 30
+    while k <= 55:
+    # for k in K:
         for i in range(width):
             for j in range(height - k):
                 if canny[i][j] != 0 and canny[i][j + k] != 0:  # edge pixels
@@ -62,6 +69,7 @@ if __name__ == '__main__':
     # cols = int(width / 10)
 
     accumulatorArray = cv2.resize(canny, (0, 0), fx=0.1, fy=0.1)
+    # accumulatorArray = copy.deepcopy(canny)
     cols = accumulatorArray.shape[0]
     rows = accumulatorArray.shape[1]
     # for i in range(rows):
@@ -93,15 +101,15 @@ if __name__ == '__main__':
             print(XI2 - XI1)
         print("THE COUNT =")
         print(count)
-        t1 = (y1 - y2 - x1*XI2 + x2*XI1) / (XI1 - XI2) if (XI1 - XI2) else 1
-        t2 = (XI1*XI2*(x2 - x1) - y2*XI2 + y1*XI1) / (XI1 - XI2) if (XI1 - XI2) else 1
+        t1 = (y1 - y2 - x1*XI1 + x2*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
+        t2 = (XI1*XI2*(x2 - x1) - y2*XI1 + y1*XI2) / (XI2 - XI1) if (XI2 - XI1) else 1
         m0 = (t2 - m2) / (t1 - m1)
         b0 = (m2*t1 - m1*t2) / (t1 - m1)
 
-        m = [m1, m2]
+        # m = [m1, m2]
         start = [round(t2), round(t1)]
-        x = 10*(cols-1)
-        finish = [int(x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)), x]
+        # x = 10*(cols-1)
+        # finish = [int(x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)), x]
         # line = cv2.circle(canny, (y1, x1), radius=5, color=(255, 255, 255),thickness=-1)
         # line = cv2.circle(canny, (y2, x2), radius=5, color=(255, 255, 255),thickness=-1)
         # line = cv2.circle(canny, (m2, m1), radius=5, color=(255, 255, 255), thickness=-1)
@@ -110,7 +118,7 @@ if __name__ == '__main__':
         # test2 = [p2[1], p2[0]]
         # line = cv2.line(canny, test1, [m2, m1], (255, 255, 255))
         # line = cv2.line(canny, [m2, m1], test2, (255, 255, 255))
-        #
+
         # line = cv2.line(canny, start, [m2, m1], (255, 255, 255))
         #
         # plt.subplot(1, 1, 1), plt.imshow(line)
@@ -122,9 +130,36 @@ if __name__ == '__main__':
             x = 10*i
             y = x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
             y = round(y/10)
+            print("first part of line equation = ")
+            print((t2 - m2) / (t1 - m1) )
+            print("second part = ")
+            print((m2 * t1 - m1 * t2) / (t1 - m1))
+            print("x = ")
+            print(x)
+            print("y before = ")
+            print(10*y)
+            print("i = ")
+            print(i)
+            print("y = ")
+            print(y)
+            # line = cv2.circle(canny, (10*y, x), radius=5, color=(255, 255, 255), thickness=-1)
+            # line = cv2.line(canny, [m2, m1], [10*y, x], (255, 255, 255))
+            #
+            # plt.subplot(1, 1, 1), plt.imshow(line)
+            # plt.title('za lines')
+            # plt.xticks([]), plt.yticks([])
+            # plt.show()
+
             lines.append([(t2 - m2) / (t1 - m1), (m2 * t1 - m1 * t2) / (t1 - m1)])
             if 0 <= y < rows:
                 accumulatorArray[i][y] += 1
+        # for i in range(256):
+        #     for j in range(256):
+        #         y = i * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
+        #         y = round(y)
+        #         if 0 <= y < 256:
+        #             accumulatorArray[i][y] += 1
+
 
     # threshold = max(max(accumulatorArray))
     threshold = 0
@@ -134,20 +169,27 @@ if __name__ == '__main__':
                 threshold = accumulatorArray[i][j]
     print('threshold = ')
     print(threshold)
+
     centers = []
     for i in range(cols):
+    # i = 0
+    # j = 0
+    # while i < cols:
         for j in range(rows):
-            if accumulatorArray[i][j] >= threshold:
+        # while j <rows:
+            if accumulatorArray[i][j] >= threshold - 20:
                 centers.append([i, j])
                 print('in centers append')
+        #     j += 10
+        # i += 10
 
 
     # for i in range(len(centers)):
     #     newimage = cv2.circle(img1, (10*centers[i][1], 10*centers[i][0]), radius=5, color=(0, 0, 255), thickness=-1)
     # print(len(indices))
     for i in range(len(indices)):
-        newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=1, color=(255, 255, 255), thickness=-1)
-        newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=1, color=(255, 255, 255), thickness=-1)
+        newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=3, color=(255, 255, 255), thickness=-1)
+        newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=3, color=(255, 255, 255), thickness=-1)
 
     plt.subplot(1, 1, 1), plt.imshow(newimage, 'gray')
     plt.title('all indices')
@@ -155,32 +197,14 @@ if __name__ == '__main__':
     plt.show()
     new = canny
     for i in range(len(centers)):
-        new = cv2.circle(canny, [10*centers[i][1], 10*centers[i][0]], radius=7, color=(255, 255, 255), thickness=-1)
+        new = cv2.circle(canny, [10*centers[i][1], 10*centers[i][0]], radius=10, color=(255, 255, 255), thickness=-1)
 
     plt.subplot(1, 1, 1), plt.imshow(new, 'gray')
     plt.title('winner center points')
     plt.xticks([]), plt.yticks([])
     plt.show()
 
-    print('shape[0] = ')
-    print(canny.shape[0])
-    print('shape[1] = ')
-    print(canny.shape[1])
 
-    voted = []
-    accumulator3D = []
-    for center in centers:
-        for i in range(len(indices)):
-            if math.sqrt((indices[i][0][0] - center[0])**2 + (indices[i][0][1] - center[1])**2) <= 200:
-                voted.append(indices[i][0])
-            if math.sqrt((indices[i][1][0] - center[0])**2 + (indices[i][1][1] - center[1])**2) <= 200:
-                voted.append(indices[i][1])
-    print("len of voted = ")
-    print(len(voted))
-    for coordinates in voted:
-        for b in range(3):
-            for d in range(3):
-                c = -coordinates[0]**2 - b*(coordinates[1]**2) - 2*d*coordinates[0]*coordinates[1]
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
