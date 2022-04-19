@@ -21,7 +21,7 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    img1 = cv2.imread('twoellipses.jpg', 0)
+    img1 = cv2.imread('1271488188_2077d21f46_b.jpg', 0)
     down_width = 256
     down_height = 256
     down_points = (down_width, down_height)
@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
     # ret, img1 = cv2.threshold(img1, 100, 255, cv2.THRESH_BINARY)
     canny = cv2.Canny(img1, 100, 200)
+    canny2 = cv2.Canny(img1, 100, 200)
 
     # images = [img1, img]
     # titles = ['og', 'canny']
@@ -56,14 +57,14 @@ if __name__ == '__main__':
     plt.xticks([]), plt.yticks([])
     plt.show()
     # K = [15, 20, 25, 30, 35, 45]
-    k = 30
+    k = 13
     while k <= 55:
     # for k in K:
         for i in range(width):
             for j in range(height - k):
                 if canny[i][j] != 0 and canny[i][j + k] != 0:  # edge pixels
                     indices.append([[i, j], [i, j + k]])
-        k += 1
+        k += 10
 
     # rows = int(height / 10)
     # cols = int(width / 10)
@@ -130,38 +131,11 @@ if __name__ == '__main__':
             x = 10*i
             y = x * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
             y = round(y/10)
-            print("first part of line equation = ")
-            print((t2 - m2) / (t1 - m1) )
-            print("second part = ")
-            print((m2 * t1 - m1 * t2) / (t1 - m1))
-            print("x = ")
-            print(x)
-            print("y before = ")
-            print(10*y)
-            print("i = ")
-            print(i)
-            print("y = ")
-            print(y)
-            # line = cv2.circle(canny, (10*y, x), radius=5, color=(255, 255, 255), thickness=-1)
-            # line = cv2.line(canny, [m2, m1], [10*y, x], (255, 255, 255))
-            #
-            # plt.subplot(1, 1, 1), plt.imshow(line)
-            # plt.title('za lines')
-            # plt.xticks([]), plt.yticks([])
-            # plt.show()
 
             lines.append([(t2 - m2) / (t1 - m1), (m2 * t1 - m1 * t2) / (t1 - m1)])
             if 0 <= y < rows:
                 accumulatorArray[i][y] += 1
-        # for i in range(256):
-        #     for j in range(256):
-        #         y = i * (t2 - m2) / (t1 - m1) + (m2 * t1 - m1 * t2) / (t1 - m1)
-        #         y = round(y)
-        #         if 0 <= y < 256:
-        #             accumulatorArray[i][y] += 1
 
-
-    # threshold = max(max(accumulatorArray))
     threshold = 0
     for i in range(cols):
         for j in range(rows):
@@ -171,22 +145,36 @@ if __name__ == '__main__':
     print(threshold)
 
     centers = []
+    centers2 = []
+    acar = copy.deepcopy(accumulatorArray)
+    data_max = filters.maximum_filter(acar, 4)
+    maxima = (acar == data_max)
+    data_min = filters.minimum_filter(acar, 3)
+    diff = ((data_max - data_min) > 33)
+    maxima[diff == 0] = 0
+
+    labeled, num_objects = ndimage.label(maxima)
+    slices = ndimage.find_objects(labeled)
+    x, y = [], []
+    for dy, dx in slices:
+        x_center = (dx.start + dx.stop - 1) / 2
+        x.append(x_center)
+        y_center = (dy.start + dy.stop - 1) / 2
+        y.append(y_center)
+
+    print(len(x))
+    print("THEzzzzzz")
+    print(len(y))
+
+
     for i in range(cols):
-    # i = 0
-    # j = 0
-    # while i < cols:
         for j in range(rows):
-        # while j <rows:
-            if accumulatorArray[i][j] >= threshold - 20:
+            if accumulatorArray[i][j] >= threshold - 100:
                 centers.append([i, j])
                 print('in centers append')
-        #     j += 10
-        # i += 10
+    for i in range(len(x)):
+        centers2.append([x[i], y[i]])
 
-
-    # for i in range(len(centers)):
-    #     newimage = cv2.circle(img1, (10*centers[i][1], 10*centers[i][0]), radius=5, color=(0, 0, 255), thickness=-1)
-    # print(len(indices))
     for i in range(len(indices)):
         newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=3, color=(255, 255, 255), thickness=-1)
         newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=3, color=(255, 255, 255), thickness=-1)
@@ -196,13 +184,23 @@ if __name__ == '__main__':
     plt.xticks([]), plt.yticks([])
     plt.show()
     new = canny
-    for i in range(len(centers)):
-        new = cv2.circle(canny, [10*centers[i][1], 10*centers[i][0]], radius=10, color=(255, 255, 255), thickness=-1)
+    new2 = canny
+    # for i in range(len(centers)):
+    #     new = cv2.circle(canny2, [10*centers[i][1], 10*centers[i][0]], radius=10, color=(255, 255, 255), thickness=-1)
 
-    plt.subplot(1, 1, 1), plt.imshow(new, 'gray')
-    plt.title('winner center points')
+    for i in range(len(centers2)):
+        new2 = cv2.circle(canny2, [int(10*centers2[i][0]), int(10*centers2[i][1])], radius=10, color=(255, 255, 255), thickness=-1)
+
+    plt.subplot(1, 1, 1), plt.imshow(new2, 'gray')
+    plt.title('winner center points2')
     plt.xticks([]), plt.yticks([])
     plt.show()
+
+    # plt.subplot(1, 1, 1), plt.imshow(new, 'gray')
+    # plt.title('winner center points')
+    # plt.xticks([]), plt.yticks([])
+    # plt.show()
+
 
 
 
