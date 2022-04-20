@@ -20,6 +20,7 @@ if __name__ == '__main__':
     print_hi('PyCharm')
     images = ['one.jpg', '1271488188_2077d21f46_b.jpg', 'images.jpg', 'alvtd333_alvin_template_small_ellipse.png',
               's-l400.jpg', 'gettyimages-1212455495-612x612.jpg', 'nEKGD2wNiwqrTOc63kiWZT7b4.png']
+    # parameter setting for each image
     kmin = [34, 13, 10, 10, 40, 45, 34]
     kmax = [48, 55, 50, 50, 100, 80, 48]
     step = [1, 10, 4, 1, 5, 4, 2]
@@ -42,8 +43,9 @@ if __name__ == '__main__':
         color2 = cv2.resize(color, down_points, interpolation=cv2.INTER_LINEAR)
         if sigma[idx] != -1:
             grey = scipy.ndimage.gaussian_filter(grey, sigma[idx])
+        # canny edge detection
         canny = cv2.Canny(grey, cannylow[idx], cannyhigh[idx])
-
+        # sobel
         gX = cv2.Sobel(grey, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)
         gY = cv2.Sobel(grey, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)
 
@@ -52,7 +54,7 @@ if __name__ == '__main__':
 
         indices = []
         lines = []
-
+        # choosing the indices pairs
         k = kmin[idx]
         while k <= kmax[idx]:
             for i in range(width):
@@ -70,7 +72,7 @@ if __name__ == '__main__':
             for j in range(rows):
                 accumulatorArray[i][j] = 0
         count = 0
-        print(len(accumulatorArray))
+        # calculating the 'TM' lines accordingly to the chosen indices pairs
         for i in range(len(indices)):
             p1 = indices[i][0]
             p2 = indices[i][1]
@@ -98,6 +100,7 @@ if __name__ == '__main__':
                     accumulatorArray[i][y] += 1
 
         threshold = 0
+        # building the accumulator array
         for i in range(cols):
             for j in range(rows):
                 if accumulatorArray[i][j] > threshold:
@@ -105,6 +108,7 @@ if __name__ == '__main__':
 
         centers = []
         accumulatorArray2 = copy.deepcopy(accumulatorArray)
+        # finding the centers by finding local maximas in accumulator array
         data_max = filters.maximum_filter(accumulatorArray2, maxneigh[idx])
         maxima = (accumulatorArray2 == data_max)
         data_min = filters.minimum_filter(accumulatorArray2, minneigh[idx])
@@ -123,17 +127,8 @@ if __name__ == '__main__':
         for i in range(len(x)):
             centers.append([x[i], y[i]])
 
-        # for i in range(len(indices)):
-        #     newimage = cv2.circle(canny, (indices[i][0][1], indices[i][0][0]), radius=3, color=(255, 255, 255), thickness=-1)
-        #     newimage = cv2.circle(canny, (indices[i][1][1], indices[i][1][0]), radius=3, color=(255, 255, 255), thickness=-1)
-        #
-        # plt.subplot(1, 1, 1), plt.imshow(newimage, 'gray')
-        # plt.title('all indices')
-        # plt.xticks([]), plt.yticks([])
-        # plt.show()
-
         result = color
-
+        # plotting the centers found on the image
         for i in range(len(centers)):
             result = cv2.circle(result, [int(10 * centers[i][0]), int(10 * centers[i][1])], radius=centerradius[idx],
                                 color=(255, 0, 0), thickness=-1)
@@ -145,6 +140,3 @@ if __name__ == '__main__':
             plt.title(titles[i])
             plt.xticks([]), plt.yticks([])
         plt.show()
-
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
